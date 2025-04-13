@@ -10,6 +10,8 @@ document.getElementById("apiConfigForm").addEventListener("submit", async functi
   };
 
   try {
+    // Show processing status
+    showToast("Processing: Connecting to MongoDB and generating API...");
     const response = await fetch('/api/generate-config', {
       method: 'POST',
       headers: { "Content-Type": "application/json" },
@@ -21,8 +23,10 @@ document.getElementById("apiConfigForm").addEventListener("submit", async functi
       document.getElementById("subscribeApiLink").href = result.subscribeApi;
       document.getElementById("updateApiLink").textContent = result.updateApi;
       document.getElementById("updateApiLink").href = result.updateApi;
+      document.getElementById("testApiLink").textContent = result.testApi;
+      document.getElementById("testApiLink").href = result.testApi;
       document.getElementById("apiResult").classList.remove("hidden");
-      showToast("API generated successfully!");
+      showToast(result.info); // Show info message from backend (e.g., connected to MongoDB)
     } else {
       throw new Error("Failed to generate API configuration");
     }
@@ -33,8 +37,7 @@ document.getElementById("apiConfigForm").addEventListener("submit", async functi
 
 document.getElementById("testApiBtn").addEventListener("click", async function() {
   try {
-    // Use the sessionId from the configuration (if needed, extract from subscribeApi URL)
-    const response = await fetch('/api/test');
+    const response = await fetch(document.getElementById("testApiLink").href);
     const result = await response.json();
     document.getElementById("testResult").textContent = JSON.stringify(result, null, 2);
   } catch (error) {

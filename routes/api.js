@@ -90,7 +90,7 @@ router.post("/:sessionId/subscribe", async (req, res) => {
   }
 });
 
-// GET /api/:sessionId/subscribers – Returns the list of subscribers
+// GET /api/:sessionId/subscribers – Returns the list of subscribers for testing (aggregated for all)
 router.get("/:sessionId/subscribers", async (req, res) => {
   try {
     const subscribers = await Subscriber.find().sort({ subscribedAt: -1 });
@@ -100,7 +100,7 @@ router.get("/:sessionId/subscribers", async (req, res) => {
   }
 });
 
-// POST /api/:sessionId/send-update – Sends update via email and Telegram
+// POST /api/:sessionId/send-update – Sends update via email and Telegram for session-specific users
 router.post("/:sessionId/send-update", async (req, res) => {
   const { message } = req.body;
   if (!message)
@@ -153,6 +153,81 @@ router.get("/:sessionId/test", async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ status: false, error: "Test error" });
+  }
+});
+
+/*
+  ---- Admin Endpoints ----
+  These endpoints allow an admin to send an update to all subscribers,
+  and view subscriber details and count regardless of session ID.
+  In production, you should secure these endpoints.
+*/
+
+// GET /api/admin/subscribers – Returns all subscribers
+router.get("/admin/subscribers", async (req, res) => {
+  try {
+    const subscribers = await Subscriber.find().sort({ subscribedAt: -1 });
+    res.json({ status: true, subscribers });
+  } catch (error) {
+    res.status(500).json({ status: false, error: "Internal server error" });
+  }
+});
+
+// POST /api/admin/send-update – Sends update to all subscribers (Admin direct API)
+router.post("/admin/send-update", async (req, res) => {
+  const { message } = req.body;
+  if (!message)
+    return res.status(400).json({ status: false, error: "Message is required" });
+  try {
+    const subscribers = await Subscriber.find();
+    // Admin configuration from environment variables (configure these in production)
+    const adminEmailUser = process.env.ADMIN_EMAIL_USER || "your-email@gmail.com";
+    const adminEmailPass = process.env.ADMIN_EMAIL_PASS || "your-email-app-password";
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: adminEmailUser,
+        pass: adminEmailPass
+      }
+    });
+    subscribers.forEach(sub => {
+      const mailOptions = {
+        from: `"Admin Update" <${adminEmailUser}>`,
+        to: sub.email,
+        subject: "Admin Update",
+        html: `<p>${message}</p>`
+      };
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) console.error("Admin send update email error:", error);
+      });
+    });
+    // Optional: Admin Telegram update if configured via environment variables
+    const adminTelegramToken = process.env.ADMIN_TELEGRAM_BOT_TOKEN;
+    const adminTelegramChatId = process.env.ADMIN_TELEGRAM_CHAT_ID;
+    if (adminTelegramToken && adminTelegramChatId) {
+      await axios.post(`https://api.telegram.org/bot${adminTelegramToken}/sendMessage`, {
+        chat_id: adminTelegramChatId,
+        text: `Admin Update: ${message}`
+      });
+    }
+    res.json({ status: true, message: "Admin update sent to all subscribers" });
+  } catch (error) {
+    console.error("Admin send update error:", error);
+    res.status(500).json({ status: false, error: "Internal server error" });
+  }
+});
+
+// GET /api/admin/test – Test endpoint for admin API
+router.get("/admin/test", async (req, res) => {
+  try {
+    const count = await Subscriber.countDocuments();
+    res.json({
+      status: true,
+      subscribers: count,
+      info: "Admin test response from subscription API."
+    });
+  } catch (error) {
+    res.status(500).json({ status: false, error: "Admin test error" });
   }
 });
 

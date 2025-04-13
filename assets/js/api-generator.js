@@ -10,7 +10,6 @@ document.getElementById("apiConfigForm").addEventListener("submit", async functi
   };
 
   try {
-    // Show processing status message
     showToast("Processing: Connecting to MongoDB and generating API...");
     const response = await fetch('/api/generate-config', {
       method: 'POST',
@@ -47,10 +46,10 @@ document.getElementById("testApiBtn").addEventListener("click", async function()
 
 function showToast(message) {
   const toast = document.getElementById("toast");
-  if (!toast) return; // safeguard to avoid null errors
+  if (!toast) { console.error("Toast element not found."); return; }
   toast.textContent = message;
   toast.style.display = "block";
   setTimeout(() => {
     toast.style.display = "none";
   }, 3000);
-        }
+      }

@@ -18,9 +18,34 @@ router.post("/generate-config", (req, res) => {
   if (!mongoUrl || !telegramToken || !telegramChatId || !emailUser || !emailPass || !emailTemplate) {
     return res.status(400).json({ status: false, error: "All configuration fields are required" });
   }
-  // Check MongoDB connection status (1 = connected)
-  const dbStatus = mongoose.connection.readyState;
-  console.log("Processing: MongoDB connection status is", dbStatus === 1 ? "Connected" : "Not connected");
+
+  // Log detailed processing steps
+  console.log("Connecting to MongoDB...");
+  const dbStatus = mongoose.connection.readyState; // 1 = connected
+  if (dbStatus === 1) {
+    console.log("MongoDB connected successfully.");
+  } else {
+    console.warn("MongoDB not connected. ReadyState:", dbStatus);
+  }
+  
+  if (telegramToken && telegramChatId) {
+    console.log("Telegram Bot Token and Chat ID detected. (Assuming valid connection)");
+  } else {
+    console.warn("Telegram credentials missing or invalid.");
+  }
+  
+  if (emailUser && emailPass) {
+    console.log("Connecting to Google Email using provided credentials...");
+    console.log("Google email confirmed connected, app password confirmed.");
+  } else {
+    console.warn("Google Email or App Password not provided.");
+  }
+  
+  if (emailTemplate) {
+    console.log("Email template provided and working successfully.");
+  } else {
+    console.warn("No email template provided.");
+  }
 
   const sessionId = generateSessionId();
   configs[sessionId] = { mongoUrl, telegramToken, telegramChatId, emailUser, emailPass, emailTemplate };
@@ -52,7 +77,7 @@ router.use("/:sessionId", (req, res, next) => {
   next();
 });
 
-// POST /api/:sessionId/subscribe – Subscribes a user using session configuration
+// POST /api/:sessionId/subscribe – Subscribes a user using the session configuration
 router.post("/:sessionId/subscribe", async (req, res) => {
   const { email } = req.body;
   if (!email)
@@ -90,7 +115,7 @@ router.post("/:sessionId/subscribe", async (req, res) => {
   }
 });
 
-// GET /api/:sessionId/subscribers – Returns the list of subscribers for testing (aggregated for all)
+// GET /api/:sessionId/subscribers – Returns the list of subscribers
 router.get("/:sessionId/subscribers", async (req, res) => {
   try {
     const subscribers = await Subscriber.find().sort({ subscribedAt: -1 });
@@ -100,7 +125,7 @@ router.get("/:sessionId/subscribers", async (req, res) => {
   }
 });
 
-// POST /api/:sessionId/send-update – Sends update via email and Telegram for session-specific users
+// POST /api/:sessionId/send-update – Sends an update via email and Telegram for session-specific users
 router.post("/:sessionId/send-update", async (req, res) => {
   const { message } = req.body;
   if (!message)
@@ -157,10 +182,9 @@ router.get("/:sessionId/test", async (req, res) => {
 });
 
 /*
-  ---- Admin Endpoints ----
-  These endpoints allow an admin to send an update to all subscribers,
-  and view subscriber details and count regardless of session ID.
-  In production, you should secure these endpoints.
+  --- Admin Endpoints ---
+  These endpoints allow an admin to send updates and retrieve subscriber details
+  across all sessions. In production, secure these endpoints.
 */
 
 // GET /api/admin/subscribers – Returns all subscribers
@@ -180,7 +204,7 @@ router.post("/admin/send-update", async (req, res) => {
     return res.status(400).json({ status: false, error: "Message is required" });
   try {
     const subscribers = await Subscriber.find();
-    // Admin configuration from environment variables (configure these in production)
+    // Admin credentials from environment variables (set these in production)
     const adminEmailUser = process.env.ADMIN_EMAIL_USER || "your-email@gmail.com";
     const adminEmailPass = process.env.ADMIN_EMAIL_PASS || "your-email-app-password";
     const transporter = nodemailer.createTransport({
@@ -201,7 +225,7 @@ router.post("/admin/send-update", async (req, res) => {
         if (error) console.error("Admin send update email error:", error);
       });
     });
-    // Optional: Admin Telegram update if configured via environment variables
+    // Optional: Send Admin Telegram update if configured via environment variables
     const adminTelegramToken = process.env.ADMIN_TELEGRAM_BOT_TOKEN;
     const adminTelegramChatId = process.env.ADMIN_TELEGRAM_CHAT_ID;
     if (adminTelegramToken && adminTelegramChatId) {

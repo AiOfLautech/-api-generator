@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>API Generator | AllMovieDaluda</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div class="api-generator-container">
+    <h1>API Generator</h1>
+    <!-- Link to Template Selection -->
+    <p>
+      <a href="select.html" class="btn">Select & Edit Email Template</a>
+    </p>
+    <form id="apiConfigForm">
+      <label>MongoDB URL:</label>
+      <input type="text" id="mongoUrl" placeholder="mongodb://localhost:27017/yourDB" required>
+      <label>Telegram Bot Token:</label>
+      <input type="text" id="telegramToken" placeholder="YOUR_TELEGRAM_BOT_TOKEN" required>
+      <label>Telegram Chat ID:</label>
+      <input type="text" id="telegramChatId" placeholder="YOUR_TELEGRAM_CHAT_ID" required>
+      <label>Email (Gmail):</label>
+      <input type="email" id="emailUser" placeholder="your-email@gmail.com" required>
+      <label>Email Password (App Password):</label>
+      <input type="password" id="emailPass" placeholder="Your email app password" required>
+      <label>Email Template (HTML):</label>
+      <!-- This textarea can be auto-filled by the editor -->
+      <textarea id="emailTemplate" placeholder="Paste your email template HTML here" required></textarea>
+      <button type="submit" class="btn">Generate API</button>
+    </form>
+    <div id="apiResult" class="hidden">
+      <h2>Generated API Links</h2>
+      <p>Subscribe API: <a id="subscribeApiLink" target="_blank"></a></p>
+      <p>Update API: <a id="updateApiLink" target="_blank"></a></p>
+      <h2>Test Your API</h2>
+      <button id="testApiBtn" class="btn">Test API</button>
+      <pre id="testResult"></pre>
+    </div>
+    <div class="toast" id="toast"></div>
+  </div>
+  <script src="assets/js/api-generator.js"></script>
+</body>
+</html>

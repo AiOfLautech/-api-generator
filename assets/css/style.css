@@ -1,0 +1,91 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #eef2f7;
+  margin: 0;
+  padding: 20px;
+}
+
+.api-generator-container {
+  max-width: 600px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  text-align: center;
+}
+
+h1, h2 {
+  color: #7c3aed;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  margin-top: 20px;
+}
+
+form label {
+  margin-top: 1rem;
+}
+
+form input, form textarea {
+  padding: 0.75rem;
+  margin-top: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.btn {
+  margin-top: 1.5rem;
+  padding: 0.75rem;
+  background: #7c3aed;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: #6b2cc6;
+}
+
+.hidden {
+  display: none;
+}
+
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #7c3aed;
+  color: #fff;
+  padding: 1rem;
+  border-radius: 4px;
+  display: none;
+}
+
+/* Template Selection Styles */
+.template-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+.template-item {
+  width: 1000px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  overflow: hidden;
+  text-align: center;
+  padding-bottom: 10px;
+}
+
+.template-item iframe {
+  width: 100%;
+  height: 200px;
+  border: none;
+}

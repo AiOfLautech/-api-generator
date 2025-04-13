@@ -1,1 +1,146 @@
+/* Overall Editor Container Styling */
+body {
+  margin: 0;
+  padding: 20px;
+  background: #1e1e1e;
+  font-family: 'Consolas', 'Courier New', monospace;
+  color: #d4d4d4;
+}
 
+.editor-container {
+  max-width: 960px;
+  margin: 40px auto;
+  background: #252526;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+/* Editor Header */
+.editor-container h2 {
+  padding: 15px 20px;
+  margin: 0;
+  background: #2d2d2d;
+  color: #ffffff;
+  font-size: 1.2em;
+  border-bottom: 1px solid #3c3c3c;
+}
+
+/* Code Container with Line Numbers */
+.code-container {
+  display: flex;
+  width: 100%;
+  position: relative;
+}
+
+.line-numbers {
+  padding: 15px 5px;
+  background: #1e1e1e;
+  color: #858585;
+  text-align: right;
+  user-select: none;
+  line-height: 1.5;
+  border-right: 1px solid #404040;
+}
+
+/* Syntax Highlighting Styles */
+.code-canvas {
+  flex: 1;
+  padding: 15px;
+  min-height: 500px;
+  background: #1e1e1e;
+  overflow: auto;
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre;
+  tab-size: 4;
+  outline: none;
+  color: #d4d4d4;
+}
+
+.code-canvas div {
+  counter-increment: line;
+}
+
+/* Syntax Highlighting Colors */
+.code-canvas .tag {
+  color: #569CD6; /* HTML tags */
+}
+
+.code-canvas .attr-name {
+  color: #9CDCFE; /* Attribute names */
+}
+
+.code-canvas .attr-value {
+  color: #CE9178; /* Attribute values */
+}
+
+.code-canvas .comment {
+  color: #6A9955; /* Comments */
+}
+
+.code-canvas .keyword {
+  color: #569CD6; /* CSS/JS keywords */
+}
+
+.code-canvas .string {
+  color: #CE9178; /* Strings */
+}
+
+.code-canvas .function {
+  color: #DCDCAA; /* Function names */
+}
+
+.code-canvas .operator {
+  color: #d4d4d4; /* Operators */
+}
+
+/* Editor Controls */
+.editor-controls {
+  padding: 15px 20px;
+  background: #2d2d2d;
+  border-top: 1px solid #3c3c3c;
+  display: flex;
+  gap: 10px;
+}
+
+.btn {
+  padding: 8px 16px;
+  background: #0e639c;
+  color: #ffffff;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: 'Consolas', 'Courier New', monospace;
+  transition: background 0.2s ease;
+}
+
+.btn:hover {
+  background: #1177bb;
+}
+
+/* Scrollbar Styling */
+.code-canvas::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.code-canvas::-webkit-scrollbar-track {
+  background: #252526;
+}
+
+.code-canvas::-webkit-scrollbar-thumb {
+  background: #3c3c3c;
+  border-radius: 5px;
+}
+
+.code-canvas::-webkit-scrollbar-corner {
+  background: #252526;
+}
+
+/* Active Line Highlight */
+.active-line {
+  background: rgba(33, 33, 33, 0.5);
+  margin: 0 -15px;
+  padding: 0 15px;
+}

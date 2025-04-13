@@ -47,10 +47,10 @@ document.getElementById("testApiBtn").addEventListener("click", async function()
 
 function showToast(message) {
   const toast = document.getElementById("toast");
-  if (!toast) return; // safeguard if the toast element is not present
+  if (!toast) return; // safeguard to avoid null errors
   toast.textContent = message;
   toast.style.display = "block";
   setTimeout(() => {
     toast.style.display = "none";
   }, 3000);
-}
+        }

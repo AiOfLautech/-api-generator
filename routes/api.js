@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const crypto = require("crypto");
+const mongoose = require("mongoose");
 const Subscriber = require("../models/Subscriber");
 const nodemailer = require("nodemailer");
 const axios = require("axios");
@@ -17,19 +18,27 @@ router.post("/generate-config", (req, res) => {
   if (!mongoUrl || !telegramToken || !telegramChatId || !emailUser || !emailPass || !emailTemplate) {
     return res.status(400).json({ status: false, error: "All configuration fields are required" });
   }
+  // Check MongoDB connection status (1 = connected)
+  const dbStatus = mongoose.connection.readyState;
+  console.log("Processing: MongoDB connection status is", dbStatus === 1 ? "Connected" : "Not connected");
+
   const sessionId = generateSessionId();
   configs[sessionId] = { mongoUrl, telegramToken, telegramChatId, emailUser, emailPass, emailTemplate };
+
   const baseUrl = req.protocol + "://" + req.get("host");
   const subscribeApi = `${baseUrl}/api/${sessionId}/subscribe`;
   const updateApi = `${baseUrl}/api/${sessionId}/send-update`;
   const testApi = `${baseUrl}/api/${sessionId}/test`;
+
   res.json({
     status: true,
     sessionId,
     subscribeApi,
     updateApi,
     testApi,
-    info: "API endpoints generated dynamically. Use these in your integration."
+    info: dbStatus === 1
+      ? "MongoDB connected. API endpoints generated dynamically."
+      : "Warning: MongoDB not connected. Please verify your connection."
   });
 });
 
@@ -43,7 +52,7 @@ router.use("/:sessionId", (req, res, next) => {
   next();
 });
 
-// POST /api/:sessionId/subscribe – Subscribe endpoint for a session's configuration
+// POST /api/:sessionId/subscribe – Subscribes a user using session configuration
 router.post("/:sessionId/subscribe", async (req, res) => {
   const { email } = req.body;
   if (!email)
@@ -91,7 +100,7 @@ router.get("/:sessionId/subscribers", async (req, res) => {
   }
 });
 
-// POST /api/:sessionId/send-update – Sends an update email and Telegram message
+// POST /api/:sessionId/send-update – Sends update via email and Telegram
 router.post("/:sessionId/send-update", async (req, res) => {
   const { message } = req.body;
   if (!message)

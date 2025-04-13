@@ -10,22 +10,21 @@ const apiRoutes = require("./routes/api");
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Middleware
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Serve static files (all front-end pages, templates, assets)
+// Serve static files from project root
 app.use(express.static(path.join(__dirname)));
 
-// API routes
 app.use("/api", apiRoutes);
 
-// Connect to MongoDB (update as necessary)
-const mongoURI = process.env.MONGODB_URI || "mongodb://localhost:27017/subscribersDB";
+// Use your Atlas URL as the default (or override with MONGODB_URI env variable)
+const mongoURI = process.env.MONGODB_URI || "mongodb+srv://godwinhephzibah25:kzdz0iKbfpai1ipo@cluster0.da67b.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+
 mongoose
   .connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log("MongoDB connected"))
+  .then(() => console.log("MongoDB connected successfully."))
   .catch((err) => console.error("MongoDB connection error:", err));
 
 app.listen(PORT, () => {

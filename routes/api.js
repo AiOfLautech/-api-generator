@@ -1,14 +1,50 @@
 const express = require("express");
 const router = express.Router();
+const crypto = require("crypto");
 const Subscriber = require("../models/Subscriber");
 const nodemailer = require("nodemailer");
 const axios = require("axios");
 
-// Global configuration object for API generation
-let apiConfig = {};
+// In-memory storage of configurations keyed by session ID
+const configs = {};
 
-// POST /api/subscribe
-router.post("/subscribe", async (req, res) => {
+// Helper function to generate a random session ID
+const generateSessionId = () => crypto.randomBytes(8).toString("hex");
+
+// POST /api/generate-config – Accepts configuration and generates dynamic API URLs
+router.post("/generate-config", (req, res) => {
+  const { mongoUrl, telegramToken, telegramChatId, emailUser, emailPass, emailTemplate } = req.body;
+  if (!mongoUrl || !telegramToken || !telegramChatId || !emailUser || !emailPass || !emailTemplate) {
+    return res.status(400).json({ status: false, error: "All configuration fields are required" });
+  }
+  const sessionId = generateSessionId();
+  configs[sessionId] = { mongoUrl, telegramToken, telegramChatId, emailUser, emailPass, emailTemplate };
+  const baseUrl = req.protocol + "://" + req.get("host");
+  const subscribeApi = `${baseUrl}/api/${sessionId}/subscribe`;
+  const updateApi = `${baseUrl}/api/${sessionId}/send-update`;
+  const testApi = `${baseUrl}/api/${sessionId}/test`;
+  res.json({
+    status: true,
+    sessionId,
+    subscribeApi,
+    updateApi,
+    testApi,
+    info: "API endpoints generated dynamically. Use these in your integration."
+  });
+});
+
+// Middleware to retrieve config for a session ID
+router.use("/:sessionId", (req, res, next) => {
+  const { sessionId } = req.params;
+  if (!configs[sessionId]) {
+    return res.status(400).json({ status: false, error: "Invalid session ID" });
+  }
+  req.config = configs[sessionId];
+  next();
+});
+
+// POST /api/:sessionId/subscribe – Subscribe endpoint for a session's configuration
+router.post("/:sessionId/subscribe", async (req, res) => {
   const { email } = req.body;
   if (!email)
     return res.status(400).json({ status: false, error: "Email is required" });
@@ -17,20 +53,20 @@ router.post("/subscribe", async (req, res) => {
     if (!subscriber) {
       subscriber = new Subscriber({ email });
       await subscriber.save();
-      
-      if (apiConfig.emailUser && apiConfig.emailPass && apiConfig.emailTemplate) {
+      const { emailUser, emailPass, emailTemplate } = req.config;
+      if (emailUser && emailPass && emailTemplate) {
         const transporter = nodemailer.createTransport({
           service: "gmail",
           auth: {
-            user: apiConfig.emailUser,
-            pass: apiConfig.emailPass
+            user: emailUser,
+            pass: emailPass
           }
         });
         const mailOptions = {
-          from: `"AllMovieDaluda" <${apiConfig.emailUser}>`,
+          from: `"AllMovieDaluda" <${emailUser}>`,
           to: email,
           subject: "Subscription Confirmation",
-          html: apiConfig.emailTemplate
+          html: emailTemplate
         };
         transporter.sendMail(mailOptions, (error, info) => {
           if (error) console.error("Email error:", error);
@@ -45,8 +81,8 @@ router.post("/subscribe", async (req, res) => {
   }
 });
 
-// GET /api/subscribers
-router.get("/subscribers", async (req, res) => {
+// GET /api/:sessionId/subscribers – Returns the list of subscribers
+router.get("/:sessionId/subscribers", async (req, res) => {
   try {
     const subscribers = await Subscriber.find().sort({ subscribedAt: -1 });
     res.json({ status: true, subscribers });
@@ -55,24 +91,25 @@ router.get("/subscribers", async (req, res) => {
   }
 });
 
-// POST /api/send-update
-router.post("/send-update", async (req, res) => {
+// POST /api/:sessionId/send-update – Sends an update email and Telegram message
+router.post("/:sessionId/send-update", async (req, res) => {
   const { message } = req.body;
   if (!message)
     return res.status(400).json({ status: false, error: "Message is required" });
   try {
     const subscribers = await Subscriber.find();
-    if (apiConfig.emailUser && apiConfig.emailPass) {
+    const { emailUser, emailPass, telegramToken, telegramChatId } = req.config;
+    if (emailUser && emailPass) {
       const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
-          user: apiConfig.emailUser,
-          pass: apiConfig.emailPass
+          user: emailUser,
+          pass: emailPass
         }
       });
       subscribers.forEach(sub => {
         const mailOptions = {
-          from: `"AllMovieDaluda" <${apiConfig.emailUser}>`,
+          from: `"AllMovieDaluda" <${emailUser}>`,
           to: sub.email,
           subject: "Update from AllMovieDaluda",
           html: `<p>${message}</p><p>Visit our site: <a href="https://your-site.com">AllMovieDaluda</a></p>`
@@ -82,9 +119,9 @@ router.post("/send-update", async (req, res) => {
         });
       });
     }
-    if (apiConfig.telegramToken && apiConfig.telegramChatId) {
-      await axios.post(`https://api.telegram.org/bot${apiConfig.telegramToken}/sendMessage`, {
-        chat_id: apiConfig.telegramChatId,
+    if (telegramToken && telegramChatId) {
+      await axios.post(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
+        chat_id: telegramChatId,
         text: `Update: ${message}`
       });
     }
@@ -95,34 +132,15 @@ router.post("/send-update", async (req, res) => {
   }
 });
 
-// POST /api/generate-config
-router.post("/generate-config", (req, res) => {
-  const { mongoUrl, telegramToken, telegramChatId, emailUser, emailPass, emailTemplate } = req.body;
-  if (!mongoUrl || !telegramToken || !telegramChatId || !emailUser || !emailPass || !emailTemplate) {
-    return res.status(400).json({ status: false, error: "All configuration fields are required" });
-  }
-  apiConfig = { mongoUrl, telegramToken, telegramChatId, emailUser, emailPass, emailTemplate };
-  const baseUrl = req.protocol + "://" + req.get("host");
-  const subscribeApi = `${baseUrl}/api/subscribe`;
-  const updateApi = `${baseUrl}/api/send-update`;
-  
-  res.json({
-    status: true,
-    subscribeApi,
-    updateApi,
-    info: "API endpoints generated. Use these in your integration."
-  });
-});
-
-// GET /api/test
-router.get("/test", async (req, res) => {
+// GET /api/:sessionId/test – Test endpoint for dynamic API configuration
+router.get("/:sessionId/test", async (req, res) => {
   try {
     const count = await Subscriber.countDocuments();
     res.json({
       creator: "AI OF LAUTECH",
       status: true,
       subscribers: count,
-      info: "Test response from subscription API."
+      info: "Test response from dynamic subscription API."
     });
   } catch (error) {
     res.status(500).json({ status: false, error: "Test error" });

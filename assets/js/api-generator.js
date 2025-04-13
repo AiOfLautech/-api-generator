@@ -10,7 +10,7 @@ document.getElementById("apiConfigForm").addEventListener("submit", async functi
   };
 
   try {
-    // Show processing status
+    // Show processing status message
     showToast("Processing: Connecting to MongoDB and generating API...");
     const response = await fetch('/api/generate-config', {
       method: 'POST',
@@ -26,7 +26,7 @@ document.getElementById("apiConfigForm").addEventListener("submit", async functi
       document.getElementById("testApiLink").textContent = result.testApi;
       document.getElementById("testApiLink").href = result.testApi;
       document.getElementById("apiResult").classList.remove("hidden");
-      showToast(result.info); // Show info message from backend (e.g., connected to MongoDB)
+      showToast(result.info);
     } else {
       throw new Error("Failed to generate API configuration");
     }
@@ -47,6 +47,7 @@ document.getElementById("testApiBtn").addEventListener("click", async function()
 
 function showToast(message) {
   const toast = document.getElementById("toast");
+  if (!toast) return; // safeguard if the toast element is not present
   toast.textContent = message;
   toast.style.display = "block";
   setTimeout(() => {

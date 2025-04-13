@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>API Generator | AllMovieDaluda</title>
+  <title>API Generator | AI OF LAUTECH</title>
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
@@ -11,7 +11,7 @@
     <h1>API Generator</h1>
     <!-- Link to Template Selection -->
     <p>
-      <a href="select.html" class="btn">Select & Edit Email Template</a>
+      <a href="select.html" class="btn">Select &amp; Edit Email Template</a>
     </p>
     <form id="apiConfigForm">
       <label>MongoDB URL:</label>
@@ -25,8 +25,7 @@
       <label>Email Password (App Password):</label>
       <input type="password" id="emailPass" placeholder="Your email app password" required>
       <label>Email Template (HTML):</label>
-      <!-- This textarea can be auto-filled by the editor -->
-      <textarea id="emailTemplate" placeholder="Paste your email template HTML here" required></textarea>
+      <textarea id="emailTemplate" placeholder="Your edited email template will appear here" required></textarea>
       <button type="submit" class="btn">Generate API</button>
     </form>
     <div id="apiResult" class="hidden">
@@ -40,5 +39,14 @@
     <div class="toast" id="toast"></div>
   </div>
   <script src="assets/js/api-generator.js"></script>
+  <script>
+    // Populate the email template field if an edited template exists
+    document.addEventListener("DOMContentLoaded", () => {
+      const savedTemplate = localStorage.getItem("editedEmailTemplate");
+      if (savedTemplate) {
+        document.getElementById("emailTemplate").value = savedTemplate;
+      }
+    });
+  </script>
 </body>
 </html>

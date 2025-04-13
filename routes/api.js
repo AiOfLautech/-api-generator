@@ -77,7 +77,7 @@ router.use("/:sessionId", (req, res, next) => {
   next();
 });
 
-// POST /api/:sessionId/subscribe – Subscribes a user using the session configuration
+// POST /api/:sessionId/subscribe – Subscribes a user using session configuration
 router.post("/:sessionId/subscribe", async (req, res) => {
   const { email } = req.body;
   if (!email)
@@ -183,8 +183,8 @@ router.get("/:sessionId/test", async (req, res) => {
 
 /*
   --- Admin Endpoints ---
-  These endpoints allow an admin to send updates and retrieve subscriber details
-  across all sessions. In production, secure these endpoints.
+  These endpoints allow an admin to send updates and retrieve subscriber data across all sessions.
+  In production, secure these endpoints.
 */
 
 // GET /api/admin/subscribers – Returns all subscribers
@@ -204,7 +204,7 @@ router.post("/admin/send-update", async (req, res) => {
     return res.status(400).json({ status: false, error: "Message is required" });
   try {
     const subscribers = await Subscriber.find();
-    // Admin credentials from environment variables (set these in production)
+    // Retrieve admin email configuration from environment variables
     const adminEmailUser = process.env.ADMIN_EMAIL_USER || "your-email@gmail.com";
     const adminEmailPass = process.env.ADMIN_EMAIL_PASS || "your-email-app-password";
     const transporter = nodemailer.createTransport({
@@ -225,7 +225,7 @@ router.post("/admin/send-update", async (req, res) => {
         if (error) console.error("Admin send update email error:", error);
       });
     });
-    // Optional: Send Admin Telegram update if configured via environment variables
+    // Optional: Admin Telegram update via environment variables
     const adminTelegramToken = process.env.ADMIN_TELEGRAM_BOT_TOKEN;
     const adminTelegramChatId = process.env.ADMIN_TELEGRAM_CHAT_ID;
     if (adminTelegramToken && adminTelegramChatId) {

@@ -8,7 +8,7 @@ document.getElementById("apiConfigForm").addEventListener("submit", async functi
     emailPass: document.getElementById("emailPass").value.trim(),
     emailTemplate: document.getElementById("emailTemplate").value.trim()
   };
-  
+
   try {
     const response = await fetch('/api/generate-config', {
       method: 'POST',
@@ -33,6 +33,7 @@ document.getElementById("apiConfigForm").addEventListener("submit", async functi
 
 document.getElementById("testApiBtn").addEventListener("click", async function() {
   try {
+    // Use the sessionId from the configuration (if needed, extract from subscribeApi URL)
     const response = await fetch('/api/test');
     const result = await response.json();
     document.getElementById("testResult").textContent = JSON.stringify(result, null, 2);

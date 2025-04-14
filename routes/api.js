@@ -6,12 +6,19 @@ const Subscriber = require('../models/Subscriber');
 const nodemailer = require('nodemailer');
 const axios = require('axios');
 
+// Helper function to format API responses
+const formatResponse = (data, status = true) => ({
+  creator: "AI OF LAUTECH",
+  status,
+  ...data
+});
+
 // POST /api/generate-config
 router.post('/generate-config', async (req, res) => {
   try {
     const { telegramBotToken, telegramChatId, gmailEmail, gmailAppPassword, emailTemplate } = req.body;
     if (!telegramBotToken || !telegramChatId || !gmailEmail || !gmailAppPassword || !emailTemplate) {
-      return res.status(400).json({ error: 'All fields are required' });
+      return res.status(400).json(formatResponse({ error: 'All fields are required' }, false));
     }
     const sessionId = uuidv4();
     const config = new Config({
@@ -36,11 +43,10 @@ router.post('/generate-config', async (req, res) => {
       'Connecting to Google Email using provided credentials... confirmed.',
       'Email template provided and working successfully.'
     ];
-    info.forEach(msg => console.log(msg));
-    res.json({ sessionId, apiUrls, info });
+    res.json(formatResponse({ sessionId, apiUrls, info }));
   } catch (error) {
     console.error('Error in generate-config:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json(formatResponse({ error: 'Server error' }, false));
   }
 });
 
@@ -51,18 +57,18 @@ router.post('/:sessionId/subscribe', async (req, res) => {
   try {
     const config = await Config.findOne({ sessionId });
     if (!config) {
-      return res.status(404).json({ error: 'Session not found' });
+      return res.status(404).json(formatResponse({ error: 'Session not found' }, false));
     }
     const existingSubscriber = await Subscriber.findOne({ email, sessionId });
     if (existingSubscriber) {
-      return res.status(400).json({ error: 'Email already subscribed' });
+      return res.status(400).json(formatResponse({ error: 'Email already subscribed' }, false));
     }
     const subscriber = new Subscriber({ email, sessionId });
     await subscriber.save();
-    res.json({ message: 'Subscribed successfully' });
+    res.json(formatResponse({ message: 'Subscribed successfully', email, sessionId }));
   } catch (error) {
     console.error('Error in subscribe:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json(formatResponse({ error: 'Server error' }, false));
   }
 });
 
@@ -73,11 +79,11 @@ router.post('/:sessionId/send-update', async (req, res) => {
   try {
     const config = await Config.findOne({ sessionId });
     if (!config) {
-      return res.status(404).json({ error: 'Session not found' });
+      return res.status(404).json(formatResponse({ error: 'Session not found' }, false));
     }
     const subscribers = await Subscriber.find({ sessionId });
     if (subscribers.length === 0) {
-      return res.status(400).json({ error: 'No subscribers found' });
+      return res.status(400).json(formatResponse({ error: 'No subscribers found' }, false));
     }
     const transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -98,10 +104,10 @@ router.post('/:sessionId/send-update', async (req, res) => {
       chat_id: config.telegramChatId,
       text: message || 'No message provided'
     });
-    res.json({ message: 'Update sent successfully' });
+    res.json(formatResponse({ message: 'Update sent successfully', subscriberCount: subscribers.length }));
   } catch (error) {
     console.error('Error in send-update:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json(formatResponse({ error: 'Server error' }, false));
   }
 });
 
@@ -111,13 +117,13 @@ router.get('/:sessionId/test', async (req, res) => {
   try {
     const config = await Config.findOne({ sessionId });
     if (!config) {
-      return res.status(404).json({ error: 'Session not found' });
+      return res.status(404).json(formatResponse({ error: 'Session not found' }, false));
     }
     const subscriberCount = await Subscriber.countDocuments({ sessionId });
-    res.json({ subscriberCount, test: 'Test data' });
+    res.json(formatResponse({ subscriberCount, test: 'Test data', sessionId }));
   } catch (error) {
     console.error('Error in test:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json(formatResponse({ error: 'Server error' }, false));
   }
 });
 
@@ -125,10 +131,10 @@ router.get('/:sessionId/test', async (req, res) => {
 router.get('/admin/subscribers', async (req, res) => {
   try {
     const subscribers = await Subscriber.find({});
-    res.json(subscribers);
+    res.json(formatResponse({ subscribers, total: subscribers.length }));
   } catch (error) {
     console.error('Error in admin/subscribers:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json(formatResponse({ error: 'Server error' }, false));
   }
 });
 
@@ -143,12 +149,12 @@ router.post('/admin/send-update', async (req, res) => {
     const adminEmailTemplate = process.env.ADMIN_EMAIL_TEMPLATE || '<p>{{message}}</p>';
 
     if (!adminTelegramBotToken || !adminTelegramChatId || !adminGmailEmail || !adminGmailAppPassword) {
-      return res.status(400).json({ error: 'Admin credentials not set' });
+      return res.status(400).json(formatResponse({ error: 'Admin credentials not set' }, false));
     }
 
     const subscribers = await Subscriber.find({});
     if (subscribers.length === 0) {
-      return res.status(400).json({ error: 'No subscribers found' });
+      return res.status(400).json(formatResponse({ error: 'No subscribers found' }, false));
     }
 
     const transporter = nodemailer.createTransport({
@@ -172,10 +178,10 @@ router.post('/admin/send-update', async (req, res) => {
       text: message || 'No message provided'
     });
 
-    res.json({ message: 'Admin update sent successfully' });
+    res.json(formatResponse({ message: 'Admin update sent successfully', subscriberCount: subscribers.length }));
   } catch (error) {
     console.error('Error in admin/send-update:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json(formatResponse({ error: 'Server error' }, false));
   }
 });
 
@@ -183,10 +189,10 @@ router.post('/admin/send-update', async (req, res) => {
 router.get('/admin/test', async (req, res) => {
   try {
     const subscriberCount = await Subscriber.countDocuments({});
-    res.json({ subscriberCount, test: 'Admin test data' });
+    res.json(formatResponse({ subscriberCount, test: 'Admin test data' }));
   } catch (error) {
     console.error('Error in admin/test:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json(formatResponse({ error: 'Server error' }, false));
   }
 });
 

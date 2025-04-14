@@ -2,22 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Email Template Editor | AllMovieDaluda</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Template Editor</title>
   <link rel="stylesheet" href="assets/css/editor.css">
 </head>
 <body>
-<div class="editor-container">
-  <h2>Edit Your Email Template</h2>
-  <div class="code-container">
-    <div class="line-numbers" id="lineNumbers"></div>
-    <div id="codeCanvas" contenteditable="true" class="code-canvas"></div>
-  </div>
-  <div class="editor-controls">
-    <button class="btn" onclick="embedSocialLinks()">Embed Social Links</button>
-    <button class="btn" onclick="saveTemplate()">Save Template</button>
-  </div>
-</div>
+  <h1>Template Editor</h1>
+  <div id="code-canvas" contenteditable="true"></div>
+  <button id="embed-social">Embed Social Links</button>
+  <button id="save-template">Save Template</button>
   <script src="assets/js/editor.js"></script>
 </body>
 </html>

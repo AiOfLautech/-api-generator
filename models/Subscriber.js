@@ -1,8 +1,10 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
-const SubscriberSchema = new mongoose.Schema({
-  email: { type: String, required: true, unique: true },
-  subscribedAt: { type: Date, default: Date.now }
+const subscriberSchema = new mongoose.Schema({
+  email: { type: String, required: true },
+  sessionId: { type: String, required: true }
 });
 
-module.exports = mongoose.model("Subscriber", SubscriberSchema);
+subscriberSchema.index({ email: 1, sessionId: 1 }, { unique: true });
+
+module.exports = mongoose.model('Subscriber', subscriberSchema);

@@ -1,4 +1,4 @@
-function selectTemplate(templateName) {
-  localStorage.setItem("selectedTemplate", templateName);
-  window.location.href = "editor.html";
+function selectTemplate(templateFile) {
+  localStorage.setItem('selectedTemplate', templateFile);
+  window.location.href = 'editor.html';
 }

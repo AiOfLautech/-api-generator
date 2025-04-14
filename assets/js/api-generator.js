@@ -1,55 +1,61 @@
-document.getElementById("apiConfigForm").addEventListener("submit", async function(e) {
-  e.preventDefault();
-  const config = {
-    mongoUrl: document.getElementById("mongoUrl").value.trim(),
-    telegramToken: document.getElementById("telegramToken").value.trim(),
-    telegramChatId: document.getElementById("telegramChatId").value.trim(),
-    emailUser: document.getElementById("emailUser").value.trim(),
-    emailPass: document.getElementById("emailPass").value.trim(),
-    emailTemplate: document.getElementById("emailTemplate").value.trim()
-  };
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('config-form');
+  const apiInfo = document.getElementById('api-info');
+  const subscribeUrl = document.getElementById('subscribe-url');
+  const sendUpdateUrl = document.getElementById('send-update-url');
+  const testUrl = document.getElementById('test-url');
+  const testApiButton = document.getElementById('test-api');
+  const testResponse = document.getElementById('test-response');
+  const processingMessages = document.getElementById('processing-messages');
+  const emailTemplateTextarea = document.getElementById('email-template');
 
-  try {
-    showToast("Processing: Connecting to MongoDB and generating API...");
-    const response = await fetch('/api/generate-config', {
-      method: 'POST',
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(config)
-    });
-    const result = await response.json();
-    if (result.status === true) {
-      document.getElementById("subscribeApiLink").textContent = result.subscribeApi;
-      document.getElementById("subscribeApiLink").href = result.subscribeApi;
-      document.getElementById("updateApiLink").textContent = result.updateApi;
-      document.getElementById("updateApiLink").href = result.updateApi;
-      document.getElementById("testApiLink").textContent = result.testApi;
-      document.getElementById("testApiLink").href = result.testApi;
-      document.getElementById("apiResult").classList.remove("hidden");
-      showToast(result.info);
-    } else {
-      throw new Error("Failed to generate API configuration");
+  if (emailTemplateTextarea) {
+    const savedTemplate = localStorage.getItem('editedEmailTemplate');
+    if (savedTemplate) {
+      emailTemplateTextarea.value = savedTemplate;
     }
-  } catch (error) {
-    showToast(`Error: ${error.message}`);
   }
-});
 
-document.getElementById("testApiBtn").addEventListener("click", async function() {
-  try {
-    const response = await fetch(document.getElementById("testApiLink").href);
-    const result = await response.json();
-    document.getElementById("testResult").textContent = JSON.stringify(result, null, 2);
-  } catch (error) {
-    showToast(`Test Error: ${error.message}`);
-  }
-});
-
-function showToast(message) {
-  const toast = document.getElementById("toast");
-  if (!toast) { console.error("Toast element not found."); return; }
-  toast.textContent = message;
-  toast.style.display = "block";
-  setTimeout(() => {
-    toast.style.display = "none";
-  }, 3000);
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+      try {
+        const response = await fetch('/api/generate-config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if (!response.ok) {
+          throw new Error('Failed to generate API');
+        }
+        const result = await response.json();
+        if (subscribeUrl) subscribeUrl.textContent = result.apiUrls.subscribe;
+        if (sendUpdateUrl) sendUpdateUrl.textContent = result.apiUrls.sendUpdate;
+        if (testUrl) testUrl.textContent = result.apiUrls.test;
+        if (apiInfo) apiInfo.style.display = 'block';
+        if (processingMessages) {
+          processingMessages.innerHTML = result.info.map(msg => `<p>${msg}</p>`).join('');
+        }
+        if (testApiButton) {
+          testApiButton.onclick = async () => {
+            try {
+              const testResponseData = await fetch(result.apiUrls.test);
+              const testData = await testResponseData.json();
+              if (testResponse) {
+                testResponse.textContent = JSON.stringify(testData, null, 2);
+              }
+            } catch (error) {
+              console.error('Error testing API:', error);
+              if (testResponse) testResponse.textContent = 'Error testing API';
+            }
+          };
+        }
+      } catch (error) {
+        console.error('Error generating API:', error);
+        alert('Error generating API');
       }
+    });
+  }
+});

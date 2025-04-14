@@ -2,51 +2,35 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>API Generator | AI OF LAUTECH</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Configuration</title>
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
-  <div class="api-generator-container">
-    <h1>API Generator</h1>
-    <!-- Link to Template Selection -->
-    <p>
-      <a href="select.html" class="btn">Select &amp; Edit Email Template</a>
-    </p>
-    <form id="apiConfigForm">
-      <label>MongoDB URL:</label>
-      <input type="text" id="mongoUrl" placeholder="mongodb://localhost:27017/yourDB" required>
-      <label>Telegram Bot Token:</label>
-      <input type="text" id="telegramToken" placeholder="YOUR_TELEGRAM_BOT_TOKEN" required>
-      <label>Telegram Chat ID:</label>
-      <input type="text" id="telegramChatId" placeholder="YOUR_TELEGRAM_CHAT_ID" required>
-      <label>Email (Gmail):</label>
-      <input type="email" id="emailUser" placeholder="your-email@gmail.com" required>
-      <label>Email Password (App Password):</label>
-      <input type="password" id="emailPass" placeholder="Your email app password" required>
-      <label>Email Template (HTML):</label>
-      <textarea id="emailTemplate" placeholder="Your edited email template will appear here" required></textarea>
-      <button type="submit" class="btn">Generate API</button>
-    </form>
-    <div id="apiResult" class="hidden">
-      <h2>Generated API Links</h2>
-      <p>Subscribe API: <a id="subscribeApiLink" target="_blank"></a></p>
-      <p>Update API: <a id="updateApiLink" target="_blank"></a></p>
-      <h2>Test Your API</h2>
-      <button id="testApiBtn" class="btn">Test API</button>
-      <pre id="testResult"></pre>
-    </div>
-    <div class="toast" id="toast"></div>
+  <h1>API Configuration</h1>
+  <form id="config-form">
+    <label for="telegram-bot-token">Telegram Bot Token:</label>
+    <input type="text" id="telegram-bot-token" name="telegramBotToken" required><br>
+    <label for="telegram-chat-id">Telegram Chat ID:</label>
+    <input type="text" id="telegram-chat-id" name="telegramChatId" required><br>
+    <label for="gmail-email">Gmail Email:</label>
+    <input type="email" id="gmail-email" name="gmailEmail" required><br>
+    <label for="gmail-app-password">Gmail App Password:</label>
+    <input type="password" id="gmail-app-password" name="gmailAppPassword" required><br>
+    <label for="email-template">Email Template (HTML):</label>
+    <textarea id="email-template" name="emailTemplate" rows="10" required></textarea><br>
+    <button type="submit">Generate API</button>
+    <a href="select.html">Select Template</a>
+  </form>
+  <div id="api-info" style="display:none;">
+    <h2>Generated API Endpoints</h2>
+    <p>Subscribe: <span id="subscribe-url"></span></p>
+    <p>Send Update: <span id="send-update-url"></span></p>
+    <p>Test: <span id="test-url"></span></p>
+    <button id="test-api">Test API</button>
+    <pre id="test-response"></pre>
   </div>
+  <div id="processing-messages"></div>
   <script src="assets/js/api-generator.js"></script>
-  <script>
-    // Populate the email template field if an edited template exists
-    document.addEventListener("DOMContentLoaded", () => {
-      const savedTemplate = localStorage.getItem("editedEmailTemplate");
-      if (savedTemplate) {
-        document.getElementById("emailTemplate").value = savedTemplate;
-      }
-    });
-  </script>
 </body>
 </html>

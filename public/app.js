@@ -1,6 +1,6 @@
-class DeobfuscatorChat {
+class DeobfuscatorApp {
   constructor() {
-    this.chatContainer = document.querySelector('.chat-messages');
+    this.chatMessages = document.getElementById('chatMessages');
     this.initEventListeners();
   }
 
@@ -15,24 +15,37 @@ class DeobfuscatorChat {
       this.processCode());
   }
 
-  async handleFileUpload(e) {
-    const file = e.target.files[0];
+  async handleFileUpload(event) {
+    const file = event.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = e => {
-      this.addMessage(e.target.result, 'user', file.name);
-      document.getElementById('codeInput').value = e.target.result;
-    };
-    reader.readAsText(file);
+    try {
+      const content = await this.readFile(file);
+      this.addMessage(content, 'user', file.name);
+      document.getElementById('codeInput').value = content;
+    } catch (error) {
+      this.showError(`File error: ${error.message}`);
+    }
+  }
+
+  readFile(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = e => resolve(e.target.result);
+      reader.onerror = e => reject(new Error('File reading failed'));
+      reader.readAsText(file);
+    });
   }
 
   async processCode() {
     const code = document.getElementById('codeInput').value.trim();
-    if (!code) return;
+    if (!code) return this.showError('Please input code to process');
 
-    const loadingMsg = this.addMessage('<div class="spinner-border text-primary"></div> Decoding...', 'ai');
-    
+    const loadingId = this.addMessage(
+      '<div class="spinner-border text-primary"></div> Analyzing code...', 
+      'ai'
+    );
+
     try {
       const response = await fetch('/api/v1/chat', {
         method: 'POST',
@@ -47,12 +60,12 @@ class DeobfuscatorChat {
 
       const data = await response.json();
       
-      if (data.success) {
-        loadingMsg.innerHTML = this.createCodeBlock(data.choices[0].message.content);
-        Prism.highlightAllUnder(loadingMsg);
-      }
+      if (!response.ok) throw new Error(data.error || 'API request failed');
+      
+      this.updateMessage(loadingId, this.createCodeBlock(data.result));
+      Prism.highlightAll();
     } catch (error) {
-      this.addMessage(`Error: ${error.message}`, 'ai');
+      this.updateMessage(loadingId, `Error: ${error.message}`);
     }
   }
 
@@ -60,8 +73,8 @@ class DeobfuscatorChat {
     return `
       <div class="code-block">
         <pre><code class="language-javascript">${code}</code></pre>
-        <button class="btn btn-sm btn-primary mt-2" onclick="this.parentElement.remove()">
-          <i class="fas fa-times"></i> Close
+        <button class="btn btn-sm btn-primary mt-2" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent)">
+          <i class="fas fa-copy"></i> Copy
         </button>
       </div>
     `;
@@ -71,10 +84,23 @@ class DeobfuscatorChat {
     const msgDiv = document.createElement('div');
     msgDiv.className = `message ${type}-message`;
     msgDiv.innerHTML = content;
-    this.chatContainer.appendChild(msgDiv);
-    this.chatContainer.scrollTop = this.chatContainer.scrollHeight;
-    return msgDiv;
+    this.chatMessages.appendChild(msgDiv);
+    msgDiv.scrollIntoView({ behavior: 'smooth' });
+    return msgDiv.id = Date.now();
+  }
+
+  updateMessage(id, newContent) {
+    const message = document.getElementById(id);
+    if (message) message.innerHTML = newContent;
+  }
+
+  showError(message) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'alert alert-danger';
+    errorDiv.textContent = message;
+    this.chatMessages.appendChild(errorDiv);
+    errorDiv.scrollIntoView({ behavior: 'smooth' });
   }
 }
 
-new DeobfuscatorChat();
+new DeobfuscatorApp();

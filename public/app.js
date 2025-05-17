@@ -1,70 +1,93 @@
 class DeobfuscatorApp {
   constructor() {
+    this.chatMessages = document.querySelector('.chat-messages');
     this.initEventListeners();
     this.checkAPIStatus();
-    this.currentFile = null;
+    this.setupDragDrop();
   }
 
   initEventListeners() {
-    document.getElementById('fileInput').addEventListener('change', e => this.handleFileUpload(e));
-    document.querySelector('.upload-btn').addEventListener('click', () => document.getElementById('fileInput').click());
-    document.getElementById('processBtn').addEventListener('click', () => this.processCode());
-    document.getElementById('darkModeSwitch').addEventListener('change', e => this.toggleDarkMode(e));
-    document.getElementById('confirmDownload').addEventListener('click', () => this.downloadCode());
+    document.getElementById('uploadBtn').addEventListener('click', () => 
+      document.getElementById('fileInput').click());
+    
+    document.getElementById('fileInput').addEventListener('change', e => 
+      this.handleFiles(e.target.files));
+    
+    document.getElementById('processBtn').addEventListener('click', () => 
+      this.processCode());
+    
+    document.getElementById('confirmDownload').addEventListener('click', () => 
+      this.downloadCode());
   }
 
-  async handleFileUpload(e) {
-    const file = e.target.files[0];
-    if (!file) return;
+  setupDragDrop() {
+    const dropZone = document.body;
+    
+    dropZone.addEventListener('dragover', e => {
+      e.preventDefault();
+      dropZone.style.backgroundColor = 'rgba(0, 255, 204, 0.1)';
+    });
 
-    this.currentFile = {
-      name: file.name,
-      type: file.type,
-      size: file.size
-    };
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.style.backgroundColor = '';
+    });
 
-    const reader = new FileReader();
-    reader.onload = e => {
-      document.getElementById('codeInput').value = e.target.result;
-      this.addMessage(e.target.result, 'user', file.name);
-    };
-    reader.readAsText(file);
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.style.backgroundColor = '';
+      this.handleFiles(e.dataTransfer.files);
+    });
+  }
+
+  async handleFiles(files) {
+    for (const file of files) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        this.addMessage(e.target.result, 'user', file.name);
+        document.getElementById('codeInput').value = e.target.result;
+      };
+      reader.readAsText(file);
+    }
   }
 
   async processCode() {
     const code = document.getElementById('codeInput').value.trim();
     if (!code) return;
 
-    const loadingMsg = this.addMessage('Deobfuscating code<span class="loading-dots"></span>', 'ai');
-    
+    const loadingMsg = this.addMessage(
+      '<div class="spinner-border text-primary"></div> Processing...', 
+      'assistant'
+    );
+
     try {
-      const response = await fetch('/api/v1/process', {
+      const response = await fetch('/api/v1/deobfuscate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           code,
-          filename: this.currentFile?.name || ''
+          filename: document.getElementById('fileInput').files[0]?.name || ''
         })
       });
 
-      const { success, code: resultCode, detectedLanguage } = await response.json();
+      const data = await response.json();
       
-      if (success) {
-        loadingMsg.innerHTML = this.createCodeMessage(resultCode, detectedLanguage);
+      if (data.success) {
+        loadingMsg.innerHTML = this.createCodeBlock(data.result, data.detected_language);
         Prism.highlightAllUnder(loadingMsg);
-        this.showDownloadModal(detectedLanguage);
+        this.showDownloadModal(data.detected_language);
       }
     } catch (error) {
-      this.addMessage(`Error: ${error.message}`, 'ai');
+      this.addMessage(`Error: ${error.message}`, 'assistant');
     }
   }
 
-  createCodeMessage(code, language) {
+  createCodeBlock(code, language) {
     return `
-      <div class="code-editor">
-        <div class="d-flex justify-content-between mb-2">
-          <span class="text-muted">${language.toUpperCase()}</span>
-          <button class="btn btn-sm btn-outline-primary download-trigger">
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-language">${language.toUpperCase()}</span>
+          <button class="btn btn-sm btn-primary" data-bs-toggle="modal" 
+                  data-bs-target="#downloadModal">
             <i class="fas fa-download"></i>
           </button>
         </div>
@@ -73,24 +96,23 @@ class DeobfuscatorApp {
     `;
   }
 
-  showDownloadModal(defaultType) {
+  showDownloadModal(language) {
     const typeSelect = document.getElementById('fileType');
     typeSelect.innerHTML = `
-      <option value="${defaultType}">.${defaultType}</option>
+      <option value="${language}">.${language}</option>
       <option value="js">.js</option>
+      <option value="py">.py</option>
       <option value="html">.html</option>
       <option value="css">.css</option>
       <option value="txt">.txt</option>
     `;
-
-    const modal = new bootstrap.Modal('#downloadModal');
-    modal.show();
+    new bootstrap.Modal('#downloadModal').show();
   }
 
   downloadCode() {
     const fileName = document.getElementById('fileName').value;
     const fileType = document.getElementById('fileType').value;
-    const code = document.querySelector('.code-editor code').textContent;
+    const code = document.querySelector('.code-block code').textContent;
     
     const blob = new Blob([code], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
@@ -98,39 +120,31 @@ class DeobfuscatorApp {
     a.href = url;
     a.download = `${fileName}.${fileType}`;
     a.click();
-    
-    bootstrap.Modal.getInstance('#downloadModal').hide();
   }
 
   addMessage(content, type, filename) {
     const msgDiv = document.createElement('div');
-    msgDiv.className = `message ${type}-message`;
+    msgDiv.className = `message ${type}`;
     msgDiv.innerHTML = `
-      <div class="avatar">${type === 'user' ? '👤' : '🤖'}</div>
-      <div class="content p-3">
-        ${filename ? `<div class="text-muted small mb-2">${filename}</div>` : ''}
-        ${content}
-      </div>
+      ${filename ? `<div class="text-muted small mb-2">${filename}</div>` : ''}
+      ${content}
     `;
-
-    document.querySelector('.chat-container').appendChild(msgDiv);
-    return msgDiv.querySelector('.content');
-  }
-
-  toggleDarkMode(e) {
-    document.body.classList.toggle('dark-mode');
-    document.body.classList.toggle('light-mode');
+    
+    this.chatMessages.appendChild(msgDiv);
+    this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+    return msgDiv;
   }
 
   async checkAPIStatus() {
     try {
-      await fetch('/api/v1/deobfuscate', { method: 'OPTIONS' });
-      document.getElementById('statusIndicator').className = 'badge bg-success';
-    } catch {
-      document.getElementById('statusIndicator').className = 'badge bg-danger';
+      const response = await fetch('/api/v1/status');
+      const data = await response.json();
+      document.getElementById('apiStatus').textContent = data.status;
+    } catch (error) {
+      document.getElementById('apiStatus').className = 'badge bg-danger';
+      document.getElementById('apiStatus').textContent = 'API Offline';
     }
   }
 }
 
-// Initialize App
 new DeobfuscatorApp();

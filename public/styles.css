@@ -1,80 +1,98 @@
 :root {
   --primary: #00ffcc;
-  --bg-dark: #1a1a2e;
+  --secondary: #2d2b4a;
+  --bg-dark: #0f0c29;
   --bg-light: #f8f9fa;
-  --editor-bg: #1e1e1e;
+  --text-dark: #ffffff;
+  --text-light: #212529;
 }
 
-body.dark-mode {
+body {
+  height: 100vh;
+  overflow: hidden;
   background: var(--bg-dark);
-  color: #fff;
+  color: var(--text-dark);
 }
 
-body.light-mode {
+.dark-theme {
+  background: linear-gradient(135deg, var(--bg-dark), #24243e);
+  color: var(--text-dark);
+}
+
+.light-theme {
   background: var(--bg-light);
-  color: #212529;
+  color: var(--text-light);
 }
 
-.chat-sidebar {
-  background: rgba(0, 0, 0, 0.1);
+.sidebar {
+  background: rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(10px);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.chat-container {
-  padding: 20px;
-  background: var(--editor-bg);
+.brand {
+  color: var(--primary);
+  font-weight: 700;
+  margin-bottom: 2rem;
+}
+
+.chat-messages {
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .message {
   margin-bottom: 1.5rem;
-  display: flex;
-  gap: 1rem;
+  animation: fadeIn 0.3s ease;
 }
 
-.user-message .content {
-  background: rgba(0, 255, 204, 0.1);
+.message.user {
+  background: rgba(0, 255, 204, 0.05);
   border: 1px solid var(--primary);
-  border-radius: 1rem 1rem 0 1rem;
+  border-radius: 1rem;
+  padding: 1rem;
 }
 
-.ai-message .content {
-  background: rgba(255, 255, 255, 0.05);
+.message.assistant {
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 1rem 1rem 1rem 0;
+  border-radius: 1rem;
+  padding: 1rem;
 }
 
-.code-editor {
-  font-family: 'Fira Code', monospace;
-  background: var(--editor-bg) !important;
-  padding: 1rem !important;
+.code-block {
+  position: relative;
+  background: #1e1e1e !important;
   border-radius: 0.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1rem;
+  margin: 1rem 0;
 }
 
-.code-editor code {
-  white-space: pre-wrap !important;
-  word-break: break-word !important;
+.code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
 }
 
-.upload-btn {
-  background: rgba(0, 255, 204, 0.1);
-  border: 1px solid var(--primary);
-  transition: all 0.3s ease;
+.code-language {
+  color: var(--primary);
+  font-family: 'Fira Code', monospace;
+  font-size: 0.9rem;
 }
 
-.upload-btn:hover {
-  background: rgba(0, 255, 204, 0.2);
-  transform: translateY(-2px);
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.loading-dots::after {
-  content: '.';
-  animation: dots 1.5s infinite;
+#codeInput {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: var(--primary) !important;
+  font-family: 'Fira Code', monospace;
+  resize: none;
 }
 
-@keyframes dots {
-  0%, 20% { content: '.'; }
-  40% { content: '..'; }
-  60% { content: '...'; }
-  80%, 100% { content: ''; }
+#codeInput:focus {
+  box-shadow: 0 0 15px rgba(0, 255, 204, 0.2);
 }

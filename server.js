@@ -36,7 +36,7 @@ app.post('/api/v1/deobfuscate', async (req, res) => {
     res.json({
       status: 200,
       success: true,
-      creator: "GiftedTech",
+      creator: "AI OF LAUTECH",
       result: data.response,
       metadata: {
         original_length: code.length,

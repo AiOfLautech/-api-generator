@@ -31,7 +31,7 @@ app.get('/api/test', async (req, res) => {
     res.json({
       status: 200,
       success: true,
-      creator: "GiftedTech",
+      creator: "AI OF LAUTECH",
       response: test.choices[0].message.content
     });
   } catch (error) {
@@ -63,7 +63,7 @@ app.post('/api/deobfuscate', async (req, res) => {
     res.json({
       status: 200,
       success: true,
-      creator: "GiftedTech",
+      creator: "AI OF LAUTECH",
       result: completion.choices[0].message.content,
       detected_language: filename?.split('.').pop() || 'txt'
     });

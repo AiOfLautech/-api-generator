@@ -38,7 +38,7 @@ class DeobfuscatorApp {
     const loadingMsg = this.addMessage('Deobfuscating code<span class="loading-dots"></span>', 'ai');
     
     try {
-      const response = await fetch('/api/v1/deobfuscate', {
+      const response = await fetch('/api/v1/process', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

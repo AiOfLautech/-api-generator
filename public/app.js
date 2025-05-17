@@ -2,7 +2,6 @@ class DeobfuscatorApp {
   constructor() {
     this.chatMessages = document.querySelector('.chat-messages');
     this.initEventListeners();
-    this.checkAPIStatus();
     this.setupDragDrop();
   }
 
@@ -11,7 +10,7 @@ class DeobfuscatorApp {
       document.getElementById('fileInput').click());
     
     document.getElementById('fileInput').addEventListener('change', e => 
-      this.handleFiles(e.target.files));
+      this.handleFile(e.target.files[0]));
     
     document.getElementById('processBtn').addEventListener('click', () => 
       this.processCode());
@@ -21,33 +20,22 @@ class DeobfuscatorApp {
   }
 
   setupDragDrop() {
-    const dropZone = document.body;
-    
-    dropZone.addEventListener('dragover', e => {
+    document.body.addEventListener('dragover', e => e.preventDefault());
+    document.body.addEventListener('drop', e => {
       e.preventDefault();
-      dropZone.style.backgroundColor = 'rgba(0, 255, 204, 0.1)';
-    });
-
-    dropZone.addEventListener('dragleave', () => {
-      dropZone.style.backgroundColor = '';
-    });
-
-    dropZone.addEventListener('drop', e => {
-      e.preventDefault();
-      dropZone.style.backgroundColor = '';
-      this.handleFiles(e.dataTransfer.files);
+      this.handleFile(e.dataTransfer.files[0]);
     });
   }
 
-  async handleFiles(files) {
-    for (const file of files) {
-      const reader = new FileReader();
-      reader.onload = e => {
-        this.addMessage(e.target.result, 'user', file.name);
-        document.getElementById('codeInput').value = e.target.result;
-      };
-      reader.readAsText(file);
-    }
+  handleFile(file) {
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = e => {
+      this.addMessage(e.target.result, 'user', file.name);
+      document.getElementById('codeInput').value = e.target.result;
+    };
+    reader.readAsText(file);
   }
 
   async processCode() {
@@ -56,7 +44,7 @@ class DeobfuscatorApp {
 
     const loadingMsg = this.addMessage(
       '<div class="spinner-border text-primary"></div> Processing...', 
-      'assistant'
+      'system'
     );
 
     try {
@@ -72,12 +60,12 @@ class DeobfuscatorApp {
       const data = await response.json();
       
       if (data.success) {
-        loadingMsg.innerHTML = this.createCodeBlock(data.result, data.detected_language);
+        loadingMsg.innerHTML = this.createCodeBlock(data.result, data.metadata.detected_language);
         Prism.highlightAllUnder(loadingMsg);
-        this.showDownloadModal(data.detected_language);
+        this.showDownloadModal(data.metadata.detected_language);
       }
     } catch (error) {
-      this.addMessage(`Error: ${error.message}`, 'assistant');
+      this.addMessage(`Error: ${error.message}`, 'system');
     }
   }
 
@@ -85,7 +73,7 @@ class DeobfuscatorApp {
     return `
       <div class="code-block">
         <div class="code-header">
-          <span class="code-language">${language.toUpperCase()}</span>
+          <span>${language.toUpperCase()}</span>
           <button class="btn btn-sm btn-primary" data-bs-toggle="modal" 
                   data-bs-target="#downloadModal">
             <i class="fas fa-download"></i>
@@ -133,17 +121,6 @@ class DeobfuscatorApp {
     this.chatMessages.appendChild(msgDiv);
     this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
     return msgDiv;
-  }
-
-  async checkAPIStatus() {
-    try {
-      const response = await fetch('/api/v1/status');
-      const data = await response.json();
-      document.getElementById('apiStatus').textContent = data.status;
-    } catch (error) {
-      document.getElementById('apiStatus').className = 'badge bg-danger';
-      document.getElementById('apiStatus').textContent = 'API Offline';
-    }
   }
 }
 

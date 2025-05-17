@@ -2,49 +2,350 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Code Deobfuscator - AI OF LAUTECH</title>
+  <title>AI Code Deobfuscator</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <style>
+    :root {
+      --ai-primary: #00ffcc;
+      --ai-secondary: #1a1a2e;
+      --gradient-bg: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    }
+
+    body {
+      background: var(--gradient-bg);
+      color: #fff;
+      min-height: 100vh;
+      font-family: 'Courier New', monospace;
+    }
+
+    .neon-header {
+      text-align: center;
+      padding: 2rem;
+      border-bottom: 2px solid var(--ai-primary);
+      box-shadow: 0 0 15px var(--ai-primary);
+      margin-bottom: 2rem;
+    }
+
+    .neon-text {
+      color: var(--ai-primary);
+      text-shadow: 0 0 10px var(--ai-primary);
+      font-size: 2.5rem;
+      letter-spacing: 2px;
+    }
+
+    .chat-container {
+      max-width: 800px;
+      margin: 0 auto;
+      height: 60vh;
+      overflow-y: auto;
+      padding: 20px;
+      border: 1px solid rgba(0, 255, 204, 0.3);
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+    }
+
+    .message {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      animation: messageAppear 0.3s ease;
+    }
+
+    @keyframes messageAppear {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .user-message {
+      flex-direction: row-reverse;
+    }
+
+    .message-bubble {
+      max-width: 70%;
+      padding: 15px 25px;
+      border-radius: 20px;
+      position: relative;
+    }
+
+    .user-bubble {
+      background: rgba(0, 123, 255, 0.2);
+      border: 1px solid #007bff;
+      border-bottom-right-radius: 5px;
+    }
+
+    .ai-bubble {
+      background: rgba(0, 255, 204, 0.1);
+      border: 1px solid var(--ai-primary);
+      border-bottom-left-radius: 5px;
+    }
+
+    .avatar {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .user-avatar {
+      background: #007bff;
+      box-shadow: 0 0 15px #007bff;
+    }
+
+    .ai-avatar {
+      background: var(--ai-primary);
+      box-shadow: 0 0 15px var(--ai-primary);
+    }
+
+    .processing-indicator {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 15px;
+      background: rgba(0, 255, 204, 0.1);
+      border-radius: 20px;
+      margin: 10px 0;
+    }
+
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--ai-primary);
+      border-radius: 50%;
+      animation: typing 1.4s infinite;
+    }
+
+    @keyframes typing {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+
+    .code-input {
+      background: rgba(0, 0, 0, 0.5) !important;
+      border: 1px solid var(--ai-primary) !important;
+      color: var(--ai-primary) !important;
+      border-radius: 10px;
+      padding: 15px;
+      font-family: 'Courier New', monospace;
+      resize: vertical;
+    }
+
+    .btn-deobfuscate {
+      background: var(--ai-primary);
+      color: #000;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-deobfuscate:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px var(--ai-primary);
+    }
+
+    pre[class*="language-"] {
+      background: #1d1e22 !important;
+      border-radius: 10px !important;
+      border: 1px solid var(--ai-primary) !important;
+    }
+  </style>
 </head>
-<body class="dark-theme">
-  <div class="container-fluid h-100">
-    <div class="row h-100">
-      <div class="col-md-8 mx-auto d-flex flex-column">
-        <header class="text-center p-4">
-          <h1 class="brand">
-            <i class="fas fa-lock-open"></i>
-            Code Deobfuscator
-            <small class="text-muted">Powered by AI OF LAUTECH</small>
-          </h1>
-        </header>
-        
-        <main class="chat-container flex-grow-1">
-          <div id="chatMessages" class="messages-container"></div>
-          
-          <div class="input-container p-3">
-            <div class="input-group shadow-lg">
-              <input type="file" id="fileInput" class="d-none" accept=".js,.py,.html,.css">
-              <button class="btn btn-outline-primary" id="uploadBtn">
-                <i class="fas fa-file-upload"></i>
-              </button>
-              <textarea id="codeInput" class="form-control" 
-                       placeholder="Paste obfuscated code or upload file..." 
-                       rows="4"></textarea>
-              <button class="btn btn-primary" id="processBtn">
-                <i class="fas fa-magic"></i> Decode
-              </button>
-            </div>
-          </div>
-        </main>
+<body class="p-3">
+  <div class="neon-header">
+    <div class="neon-text">AI Code Deobfuscator</div>
+    <small class="text-muted">Powered by Ai Of Lautech</small>
+  </div>
+
+  <div class="container">
+    <div class="chat-container" id="chatContainer">
+      <div class="message ai-message">
+        <div class="avatar ai-avatar"><i class="fas fa-robot"></i></div>
+        <div class="message-bubble ai-bubble">
+          Hello! I'm the Deobfuscator. Paste your obfuscated code or upload a file to begin, POWERED BY AI OF LAUTECH.
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-3">
+      <textarea id="inputCode" class="form-control code-input" rows="6" 
+                placeholder="Paste obfuscated code here..."></textarea>
+      <div class="d-flex gap-2 mt-3">
+        <input type="file" id="fileUpload" class="d-none" accept=".txt,.js,.html,.css">
+        <label for="fileUpload" class="btn btn-outline-light flex-grow-1">
+          <i class="fas fa-file-upload"></i> Upload File
+        </label>
+        <button id="processBtn" class="btn btn-deobfuscate flex-grow-1">
+          <i class="fas fa-rocket"></i> Deobfuscate
+        </button>
       </div>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
-  <script src="app.js"></script>
+  <script>
+    const MAX_CHUNK_SIZE = 2000; // Adjust based on API limits
+    const API_ENDPOINT = 'https://apis.davidcyriltech.my.id/ai/deepseek-r1';
+    
+    let isProcessing = false;
+    const chatContainer = document.getElementById('chatContainer');
+    const input = document.getElementById('inputCode');
+    const processBtn = document.getElementById('processBtn');
+    const fileUpload = document.getElementById('fileUpload');
+
+    fileUpload.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      if (file.size > 10 * 1024 * 1024) {
+        alert('File size exceeds 10MB limit');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        input.value = e.target.result;
+        processBtn.click();
+      };
+      reader.readAsText(file);
+    });
+
+    processBtn.addEventListener('click', async () => {
+      if (isProcessing) return;
+      const code = input.value.trim();
+      if (!code) return alert('Please input code to process');
+
+      isProcessing = true;
+      addMessage(code, 'user');
+      const processingIndicator = addProcessingIndicator();
+      
+      try {
+        const chunks = chunkText(code);
+        let fullResponse = '';
+
+        for (const [index, chunk] of chunks.entries()) {
+          updateProcessingText(`Decoding chunk ${index + 1}/${chunks.length}...`);
+          const response = await processChunk(chunk);
+          fullResponse += response + '\n';
+        }
+
+        processingIndicator.remove();
+        const cleanCode = cleanResponse(fullResponse);
+        const ext = detectFileExtension(cleanCode);
+        addFinalResult(cleanCode, ext);
+      } catch (error) {
+        processingIndicator.remove();
+        addMessage('⚠️ Error processing code. Please try again.', 'ai');
+      }
+      
+      isProcessing = false;
+    });
+
+    function chunkText(text) {
+      const chunks = [];
+      for (let i = 0; i < text.length; i += MAX_CHUNK_SIZE) {
+        chunks.push(text.slice(i, i + MAX_CHUNK_SIZE));
+      }
+      return chunks;
+    }
+
+    async function processChunk(chunk) {
+      const prompt = `Deobfuscate this code chunk and return only clean code:\n\n${chunk}`;
+      const response = await fetch(`${API_ENDPOINT}?text=${encodeURIComponent(prompt)}`);
+      const data = await response.json();
+      return data.success ? data.response.trim() : '';
+    }
+
+    function cleanResponse(response) {
+      return response.replace(/```[\s\S]*?\n/g, '').replace(/```/g, '');
+    }
+
+    function detectFileExtension(code) {
+      if (/<html|<!DOCTYPE/i.test(code)) return 'html';
+      if (/\bhtml\b/i.test(code)) return 'html';
+      if (/\bcss\b/i.test(code)) return 'css';
+      if (/\.css\b/i.test(code)) return 'css';
+      return 'js';
+    }
+
+    function addMessage(content, role) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${role}-message`;
+      
+      messageDiv.innerHTML = `
+        <div class="avatar ${role}-avatar">
+          <i class="fas fa-${role === 'user' ? 'user' : 'robot'}"></i>
+        </div>
+        <div class="message-bubble ${role}-bubble">
+          <pre><code class="language-${detectLanguage(content)}">${content}</code></pre>
+        </div>
+      `;
+      
+      chatContainer.appendChild(messageDiv);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+      Prism.highlightAllUnder(messageDiv);
+    }
+
+    function addProcessingIndicator() {
+      const div = document.createElement('div');
+      div.className = 'processing-indicator';
+      div.innerHTML = `
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <span class="processing-text">Initializing AI engine...</span>
+      `;
+      chatContainer.appendChild(div);
+      return div;
+    }
+
+    function updateProcessingText(text) {
+      const indicator = document.querySelector('.processing-indicator');
+      if (indicator) {
+        indicator.querySelector('span').textContent = text;
+      }
+    }
+
+    function addFinalResult(code, ext) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'message ai-message';
+      
+      messageDiv.innerHTML = `
+        <div class="avatar ai-avatar"><i class="fas fa-robot"></i></div>
+        <div class="message-bubble ai-bubble">
+          <pre><code class="language-${detectLanguage(code)}">${code}</code></pre>
+          <div class="mt-2">
+            <button class="btn btn-sm btn-success download-btn">
+              <i class="fas fa-download"></i> Download .${ext}
+            </button>
+          </div>
+        </div>
+      `;
+
+      messageDiv.querySelector('.download-btn').addEventListener('click', () => {
+        const blob = new Blob([code], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `deobfuscated.${ext}`;
+        a.click();
+      });
+
+      chatContainer.appendChild(messageDiv);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+      Prism.highlightAllUnder(messageDiv);
+    }
+
+    function detectLanguage(code) {
+      if (/<html|<!DOCTYPE/i.test(code)) return 'html';
+      if (/\{.*\}/.test(code)) return 'css';
+      return 'javascript';
+    }
+  </script>
 </body>
 </html>

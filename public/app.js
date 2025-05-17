@@ -1,8 +1,7 @@
-class DeobfuscatorApp {
+class DeobfuscatorChat {
   constructor() {
-    this.chatMessages = document.querySelector('.chat-messages');
+    this.chatContainer = document.querySelector('.chat-messages');
     this.initEventListeners();
-    this.setupDragDrop();
   }
 
   initEventListeners() {
@@ -10,26 +9,16 @@ class DeobfuscatorApp {
       document.getElementById('fileInput').click());
     
     document.getElementById('fileInput').addEventListener('change', e => 
-      this.handleFile(e.target.files[0]));
+      this.handleFileUpload(e));
     
     document.getElementById('processBtn').addEventListener('click', () => 
       this.processCode());
-    
-    document.getElementById('confirmDownload').addEventListener('click', () => 
-      this.downloadCode());
   }
 
-  setupDragDrop() {
-    document.body.addEventListener('dragover', e => e.preventDefault());
-    document.body.addEventListener('drop', e => {
-      e.preventDefault();
-      this.handleFile(e.dataTransfer.files[0]);
-    });
-  }
-
-  handleFile(file) {
+  async handleFileUpload(e) {
+    const file = e.target.files[0];
     if (!file) return;
-    
+
     const reader = new FileReader();
     reader.onload = e => {
       this.addMessage(e.target.result, 'user', file.name);
@@ -42,86 +31,50 @@ class DeobfuscatorApp {
     const code = document.getElementById('codeInput').value.trim();
     if (!code) return;
 
-    const loadingMsg = this.addMessage(
-      '<div class="spinner-border text-primary"></div> Processing...', 
-      'system'
-    );
-
+    const loadingMsg = this.addMessage('<div class="spinner-border text-primary"></div> Decoding...', 'ai');
+    
     try {
-      const response = await fetch('/api/v1/deobfuscate', {
+      const response = await fetch('/api/v1/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          code,
-          filename: document.getElementById('fileInput').files[0]?.name || ''
+          messages: [{
+            role: "user",
+            content: `Decode this obfuscated code:\n\n${code}`
+          }]
         })
       });
 
       const data = await response.json();
       
       if (data.success) {
-        loadingMsg.innerHTML = this.createCodeBlock(data.result, data.metadata.detected_language);
+        loadingMsg.innerHTML = this.createCodeBlock(data.choices[0].message.content);
         Prism.highlightAllUnder(loadingMsg);
-        this.showDownloadModal(data.metadata.detected_language);
       }
     } catch (error) {
-      this.addMessage(`Error: ${error.message}`, 'system');
+      this.addMessage(`Error: ${error.message}`, 'ai');
     }
   }
 
-  createCodeBlock(code, language) {
+  createCodeBlock(code) {
     return `
       <div class="code-block">
-        <div class="code-header">
-          <span>${language.toUpperCase()}</span>
-          <button class="btn btn-sm btn-primary" data-bs-toggle="modal" 
-                  data-bs-target="#downloadModal">
-            <i class="fas fa-download"></i>
-          </button>
-        </div>
-        <pre><code class="language-${language}">${code}</code></pre>
+        <pre><code class="language-javascript">${code}</code></pre>
+        <button class="btn btn-sm btn-primary mt-2" onclick="this.parentElement.remove()">
+          <i class="fas fa-times"></i> Close
+        </button>
       </div>
     `;
   }
 
-  showDownloadModal(language) {
-    const typeSelect = document.getElementById('fileType');
-    typeSelect.innerHTML = `
-      <option value="${language}">.${language}</option>
-      <option value="js">.js</option>
-      <option value="py">.py</option>
-      <option value="html">.html</option>
-      <option value="css">.css</option>
-      <option value="txt">.txt</option>
-    `;
-    new bootstrap.Modal('#downloadModal').show();
-  }
-
-  downloadCode() {
-    const fileName = document.getElementById('fileName').value;
-    const fileType = document.getElementById('fileType').value;
-    const code = document.querySelector('.code-block code').textContent;
-    
-    const blob = new Blob([code], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${fileName}.${fileType}`;
-    a.click();
-  }
-
-  addMessage(content, type, filename) {
+  addMessage(content, type) {
     const msgDiv = document.createElement('div');
-    msgDiv.className = `message ${type}`;
-    msgDiv.innerHTML = `
-      ${filename ? `<div class="text-muted small mb-2">${filename}</div>` : ''}
-      ${content}
-    `;
-    
-    this.chatMessages.appendChild(msgDiv);
-    this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+    msgDiv.className = `message ${type}-message`;
+    msgDiv.innerHTML = content;
+    this.chatContainer.appendChild(msgDiv);
+    this.chatContainer.scrollTop = this.chatContainer.scrollHeight;
     return msgDiv;
   }
 }
 
-new DeobfuscatorApp();
+new DeobfuscatorChat();

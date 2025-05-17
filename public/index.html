@@ -12,37 +12,37 @@
 <body class="dark-theme">
   <div class="container-fluid h-100">
     <div class="row h-100">
-      <!-- Chat Container -->
       <div class="col-md-8 mx-auto d-flex flex-column">
-        <div class="chat-header p-3 text-center">
-          <h3 class="brand-text">
-            <i class="fas fa-code"></i>
-            AI Code Deobfuscator
-            <small class="text-muted">by AI OF LAUTECH</small>
-          </h3>
-        </div>
+        <header class="text-center p-4">
+          <h1 class="brand">
+            <i class="fas fa-lock-open"></i>
+            Code Deobfuscator
+            <small class="text-muted">Powered by AI OF LAUTECH</small>
+          </h1>
+        </header>
         
-        <div class="chat-messages flex-grow-1 overflow-auto p-3"></div>
-        
-        <div class="chat-input p-3 border-top">
-          <div class="input-group">
-            <input type="file" id="fileInput" class="d-none" accept=".js,.py,.html,.css">
-            <button class="btn btn-outline-primary" id="uploadBtn">
-              <i class="fas fa-file-upload"></i>
-            </button>
-            <textarea id="codeInput" class="form-control code-input" 
-                     placeholder="Paste obfuscated code or upload file..." 
-                     rows="3"></textarea>
-            <button class="btn btn-primary" id="processBtn">
-              <i class="fas fa-magic"></i> Decode
-            </button>
+        <main class="chat-container flex-grow-1">
+          <div id="chatMessages" class="messages-container"></div>
+          
+          <div class="input-container p-3">
+            <div class="input-group shadow-lg">
+              <input type="file" id="fileInput" class="d-none" accept=".js,.py,.html,.css">
+              <button class="btn btn-outline-primary" id="uploadBtn">
+                <i class="fas fa-file-upload"></i>
+              </button>
+              <textarea id="codeInput" class="form-control" 
+                       placeholder="Paste obfuscated code or upload file..." 
+                       rows="4"></textarea>
+              <button class="btn btn-primary" id="processBtn">
+                <i class="fas fa-magic"></i> Decode
+              </button>
+            </div>
           </div>
-        </div>
+        </main>
       </div>
     </div>
   </div>
 
-  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
   <script src="app.js"></script>

@@ -1,13 +1,13 @@
 {
-  "name": "api-generator",
+  "name": "deobfuscator-pro",
   "version": "1.0.0",
-  "main": "server.js",
   "dependencies": {
-    "express": "^4.17.1",
-    "mongoose": "^7.0.0",
-    "nodemailer": "^6.4.16",
-    "axios": "^0.21.1",
-    "uuid": "^8.3.1"
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^6.8.1",
+    "helmet": "^7.1.0",
+    "openai": "^4.24.1"
   },
   "scripts": {
     "start": "node server.js"

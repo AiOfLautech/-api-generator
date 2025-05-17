@@ -1,71 +1,47 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const OpenAI = require('openai');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const path = require('path');
 
 const app = express();
+
+// Security Middlewares
+app.use(helmet());
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-const openai = new OpenAI({
-  baseURL: 'https://api.deepseek.com/v1',
-  apiKey: process.env.DEEPSEEK_API_KEY
-});
+// API Configuration
+const DEEPSEEK_API = 'https://api.deepseek.com/v1';
+const API_KEY = process.env.DEEPSEEK_API_KEY;
 
-// Test API Endpoint
-app.get('/api/test', async (req, res) => {
+// API Endpoints
+app.post('/api/v1/chat', async (req, res) => {
   try {
-    const test = await openai.chat.completions.create({
-      messages: [{
-        role: "system",
-        content: "You are a code deobfuscator assistant by AI OF LAUTECH"
-      }, {
-        role: "user",
-        content: "Hi"
-      }],
-      model: "deepseek-chat",
-    });
+    const { messages } = req.body;
     
+    const response = await fetch(`${DEEPSEEK_API}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "deepseek-r1",
+        messages: [{
+          role: "system",
+          content: "You are a code deobfuscator assistant by AI OF LAUTECH. Decode any obfuscated code and return clean, readable version."
+        }, ...messages]
+      })
+    });
+
+    const data = await response.json();
     res.json({
-      status: 200,
       success: true,
       creator: "AI OF LAUTECH",
-      response: test.choices[0].message.content
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-});
-
-// Main API
-app.post('/api/deobfuscate', async (req, res) => {
-  try {
-    const { code, filename } = req.body;
-    
-    const completion = await openai.chat.completions.create({
-      model: "deepseek-chat",
-      messages: [{
-        role: "system",
-        content: "You are a professional code deobfuscator. Decode any obfuscated code and return only clean version."
-      }, {
-        role: "user",
-        content: code
-      }],
-      temperature: 0.2,
-      max_tokens: 4096
-    });
-
-    res.json({
-      status: 200,
-      success: true,
-      creator: "AI OF LAUTECH",
-      result: completion.choices[0].message.content,
-      detected_language: filename?.split('.').pop() || 'txt'
+      ...data
     });
 
   } catch (error) {
@@ -76,5 +52,6 @@ app.post('/api/deobfuscate', async (req, res) => {
   }
 });
 
+// Server Start
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

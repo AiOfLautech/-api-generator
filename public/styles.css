@@ -1,0 +1,80 @@
+:root {
+  --primary: #00ffcc;
+  --bg-dark: #1a1a2e;
+  --bg-light: #f8f9fa;
+  --editor-bg: #1e1e1e;
+}
+
+body.dark-mode {
+  background: var(--bg-dark);
+  color: #fff;
+}
+
+body.light-mode {
+  background: var(--bg-light);
+  color: #212529;
+}
+
+.chat-sidebar {
+  background: rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.chat-container {
+  padding: 20px;
+  background: var(--editor-bg);
+}
+
+.message {
+  margin-bottom: 1.5rem;
+  display: flex;
+  gap: 1rem;
+}
+
+.user-message .content {
+  background: rgba(0, 255, 204, 0.1);
+  border: 1px solid var(--primary);
+  border-radius: 1rem 1rem 0 1rem;
+}
+
+.ai-message .content {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem 1rem 1rem 0;
+}
+
+.code-editor {
+  font-family: 'Fira Code', monospace;
+  background: var(--editor-bg) !important;
+  padding: 1rem !important;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.code-editor code {
+  white-space: pre-wrap !important;
+  word-break: break-word !important;
+}
+
+.upload-btn {
+  background: rgba(0, 255, 204, 0.1);
+  border: 1px solid var(--primary);
+  transition: all 0.3s ease;
+}
+
+.upload-btn:hover {
+  background: rgba(0, 255, 204, 0.2);
+  transform: translateY(-2px);
+}
+
+.loading-dots::after {
+  content: '.';
+  animation: dots 1.5s infinite;
+}
+
+@keyframes dots {
+  0%, 20% { content: '.'; }
+  40% { content: '..'; }
+  60% { content: '...'; }
+  80%, 100% { content: ''; }
+}

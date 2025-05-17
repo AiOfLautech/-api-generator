@@ -2,50 +2,55 @@
   --primary: #00ffcc;
   --secondary: #2d2b4a;
   --bg-dark: #0f0c29;
+  --bg-light: #f8f9fa;
   --text-dark: #ffffff;
 }
 
 body {
   height: 100vh;
-  background: linear-gradient(135deg, var(--bg-dark), #24243e);
+  background: var(--bg-dark);
   color: var(--text-dark);
   overflow: hidden;
 }
 
-.brand {
-  color: var(--primary);
-  text-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
+.dark-theme {
+  background: linear-gradient(135deg, var(--bg-dark), #24243e);
 }
 
-.chat-container {
-  display: flex;
-  flex-direction: column;
-  height: calc(100vh - 100px);
-}
-
-.messages-container {
-  flex-grow: 1;
-  overflow-y: auto;
+.chat-messages {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 0.5rem;
+  margin: 1rem;
   padding: 1rem;
 }
 
 .message {
   margin-bottom: 1.5rem;
-  padding: 1rem;
-  border-radius: 0.75rem;
   animation: fadeIn 0.3s ease;
 }
 
 .user-message {
   background: rgba(0, 255, 204, 0.1);
   border: 1px solid var(--primary);
+  border-radius: 1rem;
+  padding: 1rem;
   margin-left: 20%;
 }
 
 .ai-message {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+  padding: 1rem;
   margin-right: 20%;
+}
+
+.code-input {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: var(--primary) !important;
+  font-family: 'Fira Code', monospace;
+  resize: none;
 }
 
 .code-block {
@@ -54,19 +59,6 @@ body {
   border-radius: 0.5rem;
   padding: 1rem;
   margin: 1rem 0;
-}
-
-.input-container {
-  background: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
-}
-
-#codeInput {
-  background: rgba(255, 255, 255, 0.05) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  color: var(--primary) !important;
-  font-family: 'Fira Code', monospace;
-  resize: none;
 }
 
 @keyframes fadeIn {
